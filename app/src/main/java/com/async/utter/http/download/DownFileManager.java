@@ -40,7 +40,7 @@ public class DownFileManager implements IDownloadServiceCallable {
      */
     private static List<DownloadWrapper> downloadFileTaskList = new CopyOnWriteArrayList();
 
-    DownloadDao downloadDao = BaseDaoFactory.getInstance("download.db").getDataHelper(DownloadDao.class , DownloadWrapper.class);
+    private DownloadDao downloadDao = BaseDaoFactory.getInstance("download.db").getDataHelper(DownloadDao.class , DownloadWrapper.class);
 
     private final static String TAG = "DownFileManager";
 
@@ -211,6 +211,7 @@ public class DownFileManager implements IDownloadServiceCallable {
     }
 
     public DownloadWrapper startDown(DownloadWrapper downloadWrapper){
+        Log.e("---------------" , downloadWrapper.getUrl());
         synchronized (DownFileManager.class){
             RequestHolder requestHolder = new RequestHolder();
             //请求下载

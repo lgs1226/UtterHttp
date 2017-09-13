@@ -96,6 +96,11 @@ public class JsonHttpService implements IHttpService {
         return false;
     }
 
+    @Override
+    public void pause() {
+
+    }
+
     private class HttpResponseHandler extends BasicResponseHandler{
         @Override
         public String handleResponse(HttpResponse response) throws ClientProtocolException {

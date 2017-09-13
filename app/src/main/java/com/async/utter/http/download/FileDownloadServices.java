@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by Administrator on 2017/9/5.
@@ -37,6 +38,8 @@ public class FileDownloadServices implements IHttpService {
      */
     private Map<String ,String> headerMap= Collections.synchronizedMap(new HashMap<String ,String>());
     private HttpClient httpClient;
+
+    private AtomicBoolean pause=new AtomicBoolean(false);
 
     @Override
     public void setUrl(String url) {
@@ -97,7 +100,12 @@ public class FileDownloadServices implements IHttpService {
 
     @Override
     public boolean isPause() {
-        return false;
+        return pause.get();
+    }
+
+    @Override
+    public void pause() {
+        pause.compareAndSet(false , true);
     }
 
     private class HttpResponseHandler extends BasicResponseHandler{

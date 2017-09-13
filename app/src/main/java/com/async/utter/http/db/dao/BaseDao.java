@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.async.utter.http.db.annotation.DbFiled;
 import com.async.utter.http.db.annotation.DbTable;
@@ -41,7 +42,7 @@ public class BaseDao<T> implements IBaseDao<T>{
             this.entityClazz = entity;
             this.sqLiteDatabase = sqLiteDatabase;
             if (entityClazz.getAnnotation(DbTable.class) == null){
-                tableName = entityClazz.getClass().getSimpleName();
+                tableName = entityClazz.getSimpleName();
             }
             else {
                 tableName = entityClazz.getAnnotation(DbTable.class).value();
@@ -273,11 +274,16 @@ public class BaseDao<T> implements IBaseDao<T>{
             if (!columnName.equals("_id")){
                 switch (field.getType().getSimpleName()){
                     case "int":
+                    case "Integer":
                         strBuilder.append(columnName+" INTEGER,");
                         break;
                     case "String":
                     case "double":
+                    case "Double":
+                    case "float":
+                    case "Float":
                     case "byte":
+                    case "long":
                     case "Long":
                         strBuilder.append(columnName+" TEXT,");
                         break;

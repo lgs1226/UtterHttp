@@ -121,6 +121,7 @@ public class DownloadListener implements IDownListener {
                 }
                 boStream.close();
                 foStream.close();
+                Log.e("=================" , dataLength+","+getLen);
                 if (dataLength != getLen){
                     downloadServiceCallable.onDownloadError(downloadWrapper , 3 , "下载长度不相等");
                 }else {
