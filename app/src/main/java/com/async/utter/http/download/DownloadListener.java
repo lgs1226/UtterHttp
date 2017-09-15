@@ -7,13 +7,13 @@ import android.util.Log;
 
 import com.async.utter.http.download.interfaces.IDownListener;
 import com.async.utter.http.download.interfaces.IDownloadServiceCallable;
+import com.async.utter.http.download.interfaces.DownloadStatus;
 import com.async.utter.http.interfaces.IHttpService;
 
 import org.apache.http.HttpEntity;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

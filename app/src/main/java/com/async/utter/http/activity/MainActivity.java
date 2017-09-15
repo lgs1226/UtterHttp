@@ -7,11 +7,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.async.utter.http.R;
-import com.async.utter.http.db.dao.BaseDaoFactory;
 import com.async.utter.http.download.DownFileManager;
-import com.async.utter.http.download.DownloadStatus;
-import com.async.utter.http.download.DownloadWrapper;
-import com.async.utter.http.download.dao.DownloadDao;
+import com.async.utter.http.download.interfaces.DownloadStatus;
 
 public class MainActivity extends AppCompatActivity {
 

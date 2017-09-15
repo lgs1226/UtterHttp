@@ -1,4 +1,4 @@
-package com.async.utter.http.download;
+package com.async.utter.http.download.interfaces;
 
 /**
  * Created by Administrator on 2017/9/4.

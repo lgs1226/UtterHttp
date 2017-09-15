@@ -14,6 +14,7 @@ import com.async.utter.http.download.enums.DownloadStopMode;
 import com.async.utter.http.download.enums.Priority;
 import com.async.utter.http.download.interfaces.IDownloadCallable;
 import com.async.utter.http.download.interfaces.IDownloadServiceCallable;
+import com.async.utter.http.download.interfaces.DownloadStatus;
 import com.async.utter.http.interfaces.IHttpListener;
 import com.async.utter.http.interfaces.IHttpService;
 
@@ -102,92 +103,98 @@ public class DownFileManager implements IDownloadServiceCallable {
                     }
                 }
             }
+            /**---------------------------------------------
+             * 插入数据库
+             * 可能插入失败
+             * 因为filePath  和id是独一无二的  在数据库建表时已经确定了
+             */
             downloadWrapper = downloadDao.addRecord(url, filePath, fileName, priority.getValue());
             if (downloadWrapper != null){
                 synchronized (applisteners){
                     for (IDownloadCallable iDownloadCallable:applisteners) {
-                        iDownloadCallable.onDownloadInfoAdd(1);
+                        iDownloadCallable.onDownloadInfoAdd(downloadWrapper.getId());
                     }
                 }
             }
-            downloadWrapper = downloadDao.findRecord(url , filePath);
-            if (isDowning(file.getAbsolutePath())){
-                synchronized (applisteners){
-                    for (IDownloadCallable iDownloadCallable:applisteners) {
-                        iDownloadCallable.onDownloadError(downloadWrapper.getId() , 4 , "正在下载中...");
-                    }
-                }
-                return downloadWrapper.getId();
+            else {
+                downloadWrapper = downloadDao.findRecord(url , filePath);
             }
+        }
+        if (isDowning(file.getAbsolutePath())){
+            synchronized (applisteners){
+                for (IDownloadCallable iDownloadCallable:applisteners) {
+                    iDownloadCallable.onDownloadError(downloadWrapper.getId() , 4 , "正在下载中...");
+                }
+            }
+            return downloadWrapper.getId();
+        }
 
-            if (downloadWrapper != null){
-                downloadWrapper.setPriority(priority.getValue());
-                if (downloadWrapper.getStatus() != DownloadStatus.finish.getValue()){
-                    if (downloadWrapper.getTotalLength() == 0L || file.length() == 0){
-                        Log.e(TAG, "download: 还未开始下载");
-                        downloadWrapper.setStatus(DownloadStatus.failed.getValue());
-                    }
-                    /**
-                     * 判断数据库中长度是否等于文件长度
-                     */
-                    if (downloadWrapper.getTotalLength() == file.length() && downloadWrapper.getTotalLength() != 0){
-                        downloadWrapper.setStatus(DownloadStatus.finish.getValue());
-                        synchronized (applisteners){
-                            for (IDownloadCallable iDownloadCallable:applisteners) {
-                                iDownloadCallable.onDownloadError(downloadWrapper.getId() , 4 , "文件已下载");
-                            }
-                        }
-                    }
+        if (downloadWrapper != null){
+            downloadWrapper.setPriority(priority.getValue());
+            if (downloadWrapper.getStatus() != DownloadStatus.finish.getValue()){
+                if (downloadWrapper.getTotalLength() == 0L || file.length() == 0){
+                    Log.e(TAG, "download: 还未开始下载");
+                    downloadWrapper.setStatus(DownloadStatus.failed.getValue());
                 }
-                downloadDao.upadateRecord(downloadWrapper);
-            }
-            /**
-             * 判断是否已经下载完毕
-             */
-            if (downloadWrapper.getStatus() == DownloadStatus.finish.getValue()){
-                Log.i(TAG, "download: 下载完成，准备回调应用层");
-                final int downId = downloadWrapper.getId();
-                synchronized (applisteners){
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            for (IDownloadCallable iDownloadCallable : applisteners) {
-                                iDownloadCallable.onDownloadSuccess(downId);
-                            }
-                        }
-                    });
-                }
-                downloadDao.removeRecorFromMemory(downloadWrapper.getId());
-                return downloadWrapper.getId();
-            }
-            //之前的下载，状态设置为暂停状态
-            List<DownloadWrapper> allDown = downloadFileTaskList;
-            if (priority != Priority.high){
-                for (DownloadWrapper downing:allDown) {
-                    //从下载表中  获取到全部正在下载的任务
-                    downing = downloadDao.findSigleRecord(downing.getFilePath());
-                    if (downloadWrapper != null && downloadWrapper.getPriority() == Priority.high.getValue()){
-                        if (downloadWrapper.getFilePath().equals(downing.getFilePath())){
-                            return downloadWrapper.getId();
+                /**
+                 * 判断数据库中长度是否等于文件长度
+                 */
+                if (downloadWrapper.getTotalLength() == file.length() && downloadWrapper.getTotalLength() != 0){
+                    downloadWrapper.setStatus(DownloadStatus.finish.getValue());
+                    synchronized (applisteners){
+                        for (IDownloadCallable iDownloadCallable:applisteners) {
+                            iDownloadCallable.onDownloadError(downloadWrapper.getId() , 4 , "文件已下载");
                         }
                     }
                 }
             }
-            DownloadWrapper downloadWrapper1 = startDown(downloadWrapper);
-            if (priority == Priority.high || priority == Priority.middle){
-                synchronized (allDown){
-                    for (DownloadWrapper down:allDown) {
-                        if (!downloadWrapper.getFilePath().equals(down.getFilePath())){
-                            DownloadWrapper sigleRecord = downloadDao.findSigleRecord(down.getFilePath());
-                            if (sigleRecord != null){
-                                pause(sigleRecord.getId() , DownloadStopMode.auto);
-                            }
+            downloadDao.upadateRecord(downloadWrapper);
+        }
+        /**
+         * 判断是否已经下载完毕
+         */
+        if (downloadWrapper.getStatus() == DownloadStatus.finish.getValue()){
+            Log.i(TAG, "download: 下载完成，准备回调应用层");
+            final int downId = downloadWrapper.getId();
+            synchronized (applisteners){
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (IDownloadCallable iDownloadCallable : applisteners) {
+                            iDownloadCallable.onDownloadSuccess(downId);
+                        }
+                    }
+                });
+            }
+            downloadDao.removeRecorFromMemory(downloadWrapper.getId());
+            return downloadWrapper.getId();
+        }
+        //之前的下载，状态设置为暂停状态
+        List<DownloadWrapper> allDown = downloadFileTaskList;
+        if (priority != Priority.high){
+            for (DownloadWrapper downing:allDown) {
+                //从下载表中  获取到全部正在下载的任务
+                downing = downloadDao.findSigleRecord(downing.getFilePath());
+                if (downloadWrapper != null && downloadWrapper.getPriority() == Priority.high.getValue()){
+                    if (downloadWrapper.getFilePath().equals(downing.getFilePath())){
+                        return downloadWrapper.getId();
+                    }
+                }
+            }
+        }
+        DownloadWrapper downloadWrapper1 = startDown(downloadWrapper);
+        if (priority == Priority.high || priority == Priority.middle){
+            synchronized (allDown){
+                for (DownloadWrapper down:allDown) {
+                    if (!downloadWrapper.getFilePath().equals(down.getFilePath())){
+                        DownloadWrapper sigleRecord = downloadDao.findSigleRecord(down.getFilePath());
+                        if (sigleRecord != null){
+                            pause(sigleRecord.getId() , DownloadStopMode.auto);
                         }
                     }
                 }
-                return downloadWrapper.getId();
             }
-            return -1;
+            return downloadWrapper.getId();
         }
         return -1;
     }

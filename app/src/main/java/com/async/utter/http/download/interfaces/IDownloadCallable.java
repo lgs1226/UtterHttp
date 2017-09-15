@@ -1,8 +1,6 @@
 package com.async.utter.http.download.interfaces;
 
 
-import com.async.utter.http.download.DownloadStatus;
-
 /**
  * 断点续传监听接口
  *
