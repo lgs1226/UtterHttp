@@ -95,7 +95,8 @@ public class DownFileManager implements IDownloadServiceCallable {
             ArrayList<DownloadWrapper> record = downloadDao.findRecord(filePath);
             if (record.size() > 0){
                 DownloadWrapper downloadWrapper1 = record.get(0);
-                if (downloadWrapper.getCurrentLength() == downloadWrapper.getTotalLength()){
+                //文件已下载
+                if (downloadWrapper.getCurrentLength() == downloadWrapper.getTotalLength() || downloadWrapper.getStatus() == DownloadStatus.finish.getValue()){
                     synchronized (applisteners){
                         for (IDownloadCallable iDownloadCallable:applisteners) {
                             iDownloadCallable.onDownloadError(downloadWrapper1.getId() , 2 , "文件已下载");
@@ -120,6 +121,8 @@ public class DownFileManager implements IDownloadServiceCallable {
                 downloadWrapper = downloadDao.findRecord(url , filePath);
             }
         }
+
+        //是否正在下载
         if (isDowning(file.getAbsolutePath())){
             synchronized (applisteners){
                 for (IDownloadCallable iDownloadCallable:applisteners) {
@@ -131,11 +134,13 @@ public class DownFileManager implements IDownloadServiceCallable {
 
         if (downloadWrapper != null){
             downloadWrapper.setPriority(priority.getValue());
+            //判断数据库存的是否已经完成
             if (downloadWrapper.getStatus() != DownloadStatus.finish.getValue()){
                 if (downloadWrapper.getTotalLength() == 0L || file.length() == 0){
                     Log.e(TAG, "download: 还未开始下载");
                     downloadWrapper.setStatus(DownloadStatus.failed.getValue());
                 }
+
                 /**
                  * 判断数据库中长度是否等于文件长度
                  */
@@ -161,7 +166,7 @@ public class DownFileManager implements IDownloadServiceCallable {
                     @Override
                     public void run() {
                         for (IDownloadCallable iDownloadCallable : applisteners) {
-                            iDownloadCallable.onDownloadSuccess(downId);
+                            iDownloadCallable.onDownloadStatusChanged(downId , DownloadStatus.finish);
                         }
                     }
                 });
@@ -182,7 +187,7 @@ public class DownFileManager implements IDownloadServiceCallable {
                 }
             }
         }
-        DownloadWrapper downloadWrapper1 = startDown(downloadWrapper);
+        startDown(downloadWrapper);
         if (priority == Priority.high || priority == Priority.middle){
             synchronized (allDown){
                 for (DownloadWrapper down:allDown) {

@@ -1,6 +1,8 @@
 package com.async.utter.http.activity;
 
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.support.v4.graphics.BitmapCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
