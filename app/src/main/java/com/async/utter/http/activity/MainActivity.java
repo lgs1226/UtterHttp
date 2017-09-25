@@ -11,6 +11,8 @@ import android.widget.TextView;
 import com.async.utter.http.R;
 import com.async.utter.http.download.DownFileManager;
 import com.async.utter.http.download.interfaces.DownloadStatus;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.RequestParams;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,6 +40,6 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
         DownFileManager manager = new DownFileManager();
-        manager.download("http://gdown.baidu.com/data/wisegame/8be18d2c0dc8a9c9/WPSOffice_177.apk");
+//        manager.download("http://gdown.baidu.com/data/wisegame/8be18d2c0dc8a9c9/WPSOffice_177.apk");
     }
 }

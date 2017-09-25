@@ -69,22 +69,22 @@ public class DownFileManager implements IDownloadServiceCallable {
 
     }
 
-    public int download(String url){
+    public int download(String url , IDownloadCallable downloadCallable){
         String[] preFix=url.split("/");
-        return this.download(url , Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+preFix[preFix.length - 1]);
+        return this.download(url , Environment.getExternalStorageDirectory().getAbsolutePath()+"/"+preFix[preFix.length - 1] , downloadCallable);
     }
 
-    public int download(String url , String filePath){
+    public int download(String url , String filePath , IDownloadCallable downloadCallable){
         String[] preFix=url.split("/");
         String fileName=preFix[preFix.length-1];
-        return this.download(url , filePath , fileName);
+        return this.download(url , filePath , fileName , downloadCallable);
     }
 
-    public int download(String url , String filePath , String fileName){
-        return this.download(url , filePath , fileName , Priority.middle);
+    public int download(String url , String filePath , String fileName , IDownloadCallable downloadCallable){
+        return this.download(url , filePath , fileName , Priority.middle , downloadCallable);
     }
 
-    public int download(String url , String filePath , String fileName , Priority priority){
+    public int download(String url , String filePath , String fileName , Priority priority , IDownloadCallable downloadCallable){
         if (priority == null){
             priority = Priority.low;
         }
@@ -134,13 +134,13 @@ public class DownFileManager implements IDownloadServiceCallable {
 
         if (downloadWrapper != null){
             downloadWrapper.setPriority(priority.getValue());
+            downloadWrapper.setStopMode(DownloadStopMode.auto.getValue());
             //判断数据库存的是否已经完成
             if (downloadWrapper.getStatus() != DownloadStatus.finish.getValue()){
                 if (downloadWrapper.getTotalLength() == 0L || file.length() == 0){
                     Log.e(TAG, "download: 还未开始下载");
                     downloadWrapper.setStatus(DownloadStatus.failed.getValue());
                 }
-
                 /**
                  * 判断数据库中长度是否等于文件长度
                  */
@@ -151,6 +151,11 @@ public class DownFileManager implements IDownloadServiceCallable {
                             iDownloadCallable.onDownloadError(downloadWrapper.getId() , 4 , "文件已下载");
                         }
                     }
+                }
+            }
+            else {
+                if (!file.exists() || (downloadWrapper.getTotalLength() != downloadWrapper.getCurrentLength())){
+                    downloadWrapper.setStatus(DownloadStatus.failed.getValue());
                 }
             }
             downloadDao.upadateRecord(downloadWrapper);
@@ -205,6 +210,7 @@ public class DownFileManager implements IDownloadServiceCallable {
     }
 
     public void pause(int downId , DownloadStopMode downloadStopMode){
+        Log.e(TAG, "pause: pause()");
         if (downloadStopMode == null){
             downloadStopMode = DownloadStopMode.auto;
         }
@@ -249,6 +255,7 @@ public class DownFileManager implements IDownloadServiceCallable {
         }
         return false;
     }
+
     @Override
     public void onDownloadStatusChanged(DownloadWrapper downloadWrapper) {
 

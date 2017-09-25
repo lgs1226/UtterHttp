@@ -4,6 +4,8 @@ import com.async.utter.http.interfaces.IDataListener;
 import com.async.utter.http.interfaces.IHttpListener;
 import com.async.utter.http.interfaces.IHttpService;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.FutureTask;
 
 /**
@@ -11,6 +13,8 @@ import java.util.concurrent.FutureTask;
  */
 
 public class UtterHttpClient {
+
+    private Map<String , String> headMap = new HashMap<>();
 
     public static<T , M> void post(String url , T requstInfo , Class<M> responseModel , IDataListener<M> dataListener){
         RequestHolder<T> requestHolder = new RequestHolder<>();
@@ -28,5 +32,25 @@ public class UtterHttpClient {
             dataListener.onFailure(e.getMessage());
         }
     }
+
+    public void addHeader(String key , String value){
+        headMap.put(key , value);
+    }
+
+    // TODO:GET请求
+    public void get(){
+
+    }
+
+    //TODO:POST请求
+    public void post(){
+
+    }
+
+    //TODO:Download
+    public void download(){
+
+    }
+
 
 }

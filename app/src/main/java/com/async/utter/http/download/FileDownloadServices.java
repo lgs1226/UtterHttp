@@ -56,6 +56,7 @@ public class FileDownloadServices implements IHttpService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
     }
 
     private void constructHeader() {
