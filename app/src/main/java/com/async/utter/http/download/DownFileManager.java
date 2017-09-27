@@ -14,7 +14,7 @@ import com.async.utter.http.download.enums.DownloadStopMode;
 import com.async.utter.http.download.enums.Priority;
 import com.async.utter.http.download.interfaces.IDownloadCallable;
 import com.async.utter.http.download.interfaces.IDownloadServiceCallable;
-import com.async.utter.http.download.interfaces.DownloadStatus;
+import com.async.utter.http.download.enums.DownloadStatus;
 import com.async.utter.http.interfaces.IHttpListener;
 import com.async.utter.http.interfaces.IHttpService;
 
@@ -104,11 +104,6 @@ public class DownFileManager implements IDownloadServiceCallable {
                     }
                 }
             }
-            /**---------------------------------------------
-             * 插入数据库
-             * 可能插入失败
-             * 因为filePath  和id是独一无二的  在数据库建表时已经确定了
-             */
             downloadWrapper = downloadDao.addRecord(url, filePath, fileName, priority.getValue());
             if (downloadWrapper != null){
                 synchronized (applisteners){
@@ -123,7 +118,7 @@ public class DownFileManager implements IDownloadServiceCallable {
         }
 
         //是否正在下载
-        if (isDowning(file.getAbsolutePath())){
+        if (isDowning(filePath)){
             synchronized (applisteners){
                 for (IDownloadCallable iDownloadCallable:applisteners) {
                     iDownloadCallable.onDownloadError(downloadWrapper.getId() , 4 , "正在下载中...");
@@ -145,6 +140,7 @@ public class DownFileManager implements IDownloadServiceCallable {
                  * 判断数据库中长度是否等于文件长度
                  */
                 if (downloadWrapper.getTotalLength() == file.length() && downloadWrapper.getTotalLength() != 0){
+                    Log.e(TAG, "文件已下载");
                     downloadWrapper.setStatus(DownloadStatus.finish.getValue());
                     synchronized (applisteners){
                         for (IDownloadCallable iDownloadCallable:applisteners) {
@@ -268,13 +264,14 @@ public class DownFileManager implements IDownloadServiceCallable {
 
     @Override
     public void onCurrentSizeChanged(DownloadWrapper downloadWrapper, double downLen, long speed) {
-        Log.i(TAG,"下载速度："+ speed/1000 +"k/s");
+        Log.i(TAG,"下载速度："+ speed +"k/s");
         Log.i(TAG,"-----路径  "+ downloadWrapper.getFilePath()+"  下载长度  "+downLen+"   速度  "+speed);
     }
 
     @Override
     public void onDownLoadSuccess(DownloadWrapper downloadWrapper) {
         Log.i(TAG,"下载成功    路劲  "+ downloadWrapper.getFilePath()+"  url "+ downloadWrapper.getUrl());
+        downloadDao.upadateRecord(downloadWrapper);
     }
 
     @Override

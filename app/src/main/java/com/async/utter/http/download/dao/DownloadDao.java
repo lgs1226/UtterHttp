@@ -1,7 +1,7 @@
 package com.async.utter.http.download.dao;
 
 import com.async.utter.http.db.dao.BaseDao;
-import com.async.utter.http.download.interfaces.DownloadStatus;
+import com.async.utter.http.download.enums.DownloadStatus;
 import com.async.utter.http.download.DownloadWrapper;
 
 import java.text.SimpleDateFormat;

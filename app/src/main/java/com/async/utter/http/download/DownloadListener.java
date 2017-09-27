@@ -7,7 +7,7 @@ import android.util.Log;
 
 import com.async.utter.http.download.interfaces.IDownListener;
 import com.async.utter.http.download.interfaces.IDownloadServiceCallable;
-import com.async.utter.http.download.interfaces.DownloadStatus;
+import com.async.utter.http.download.enums.DownloadStatus;
 import com.async.utter.http.interfaces.IHttpService;
 
 import org.apache.http.HttpEntity;
@@ -63,11 +63,8 @@ public class DownloadListener implements IDownListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        long startTime = System.currentTimeMillis();
         //用于计算每秒多少k
         long speed = 0L;
-        //花费时间
-        long userTime = 0L;
         //下载长度
         long getLen = 0L;
         //接收的长度
@@ -75,8 +72,6 @@ public class DownloadListener implements IDownListener {
         boolean bufferLen = false;
         //得到下载的长度
         long dataLength = httpEntity.getContentLength();
-        //单位时间下载的字节数
-        long calcSpeedLen = 0L;
         //总数
         long totalLenth = this.breakPoint + dataLength;
         //更新数量
@@ -85,13 +80,14 @@ public class DownloadListener implements IDownListener {
         this.downloadStatusChange(DownloadStatus.downloading);
         byte[] bytes = new byte[1024];
         int count = 0;
-        long currentTime = System.currentTimeMillis();
         BufferedOutputStream boStream = null;
         FileOutputStream foStream = null;
         if (!makeDir(this.getFile().getParentFile())){
             downloadServiceCallable.onDownloadError(downloadWrapper , 1 , "创建文件夹失败！");
         }else {
             try {
+                long startTime = System.currentTimeMillis();
+                long currentTime = 0L;
                 foStream = new FileOutputStream(this.getFile() , true);
                 boStream = new BufferedOutputStream(foStream);
                 int length = 1;
@@ -103,24 +99,18 @@ public class DownloadListener implements IDownListener {
                     if (this.getHttpService().isPause()){
                         downloadServiceCallable.onDownloadError(downloadWrapper , 1 , "暂停");
                     }
+                    currentTime = System.currentTimeMillis();
                     boStream.write(bytes , 0 , length);
                     getLen += length;
                     receiveLen += length;
-                    calcSpeedLen += length;
-                    ++count;
-                    if (receiveLen * 10 / totalLenth >= 1L || count >= 5000){
-                        currentTime = System.currentTimeMillis();
-                        userTime = currentTime - startTime;
+                    if (currentTime - startTime >= 500){
                         startTime = currentTime;
-                        speed = 1000L * calcSpeedLen / userTime;
-                        count = 0;
-                        calcSpeedLen = 0L;
+                        speed = receiveLen / 1024 * 2;
                         receiveLen = 0L;
                         this.downloadLengthChange(this.breakPoint+getLen , totalLenth , speed);
                     }
+
                 }
-                boStream.close();
-                foStream.close();
                 Log.e("=================" , dataLength+","+getLen);
                 if (dataLength != getLen){
                     downloadServiceCallable.onDownloadError(downloadWrapper , 3 , "下载长度不相等");

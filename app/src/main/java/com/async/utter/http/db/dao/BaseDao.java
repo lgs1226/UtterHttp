@@ -241,7 +241,7 @@ public class BaseDao<T> implements IBaseDao<T>{
             while (iterator.hasNext()){
                 String key = iterator.next();
                 String value = whereMap.get(key);
-                if (value != null){
+                if (value != null && !value.equals("0")){
                     //拼接查询语句
                     strs.append(" and "+key+" =?");
                     list.add(value);

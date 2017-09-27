@@ -1,4 +1,4 @@
-package com.async.utter.http.download.interfaces;
+package com.async.utter.http.download.enums;
 
 /**
  * Created by Administrator on 2017/9/4.

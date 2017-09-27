@@ -1,18 +1,19 @@
 package com.async.utter.http.activity;
 
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.support.v4.graphics.BitmapCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.async.utter.http.R;
+import com.async.utter.http.db.dao.BaseDaoFactory;
 import com.async.utter.http.download.DownFileManager;
-import com.async.utter.http.download.interfaces.DownloadStatus;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.RequestParams;
+import com.async.utter.http.download.DownloadWrapper;
+import com.async.utter.http.download.dao.DownloadDao;
+import com.async.utter.http.download.enums.DownloadStatus;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -24,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         tv_test = (TextView) findViewById(R.id.tv_test);
-        Log.e("=======", "onCreate: "+DownloadStatus.finish.getValue());
     }
 
     public void post(View view){
@@ -40,6 +40,6 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
         DownFileManager manager = new DownFileManager();
-//        manager.download("http://gdown.baidu.com/data/wisegame/8be18d2c0dc8a9c9/WPSOffice_177.apk");
+        manager.download("http://gdown.baidu.com/data/wisegame/8be18d2c0dc8a9c9/WPSOffice_177.apk" , null);
     }
 }
